@@ -587,6 +587,8 @@
         background: white;
         width: 100%;
         max-width: 650px;
+        max-height: 85vh;
+        overflow-y: auto;
         border-radius: 25px;
         padding: 32px;
         box-shadow: 0 25px 80px rgba(0,0,0,.18);
@@ -630,18 +632,111 @@
 
     .folder-option {
         width: 100%;
-        padding: 15px;
+        padding: 17px;
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 14px;
         background: white;
         margin-top: 10px;
         text-align: left;
         color: var(--text);
+        transition: .15s;
     }
 
     .folder-option:hover {
         background: var(--blue-light);
         border-color: #bfd2ff;
+    }
+
+    .folder-option strong {
+        display: block;
+        font-size: 17px;
+        margin-bottom: 3px;
+    }
+
+    .folder-option small {
+        color: #8b94a5;
+    }
+
+    .new-folder-button {
+        width: 100%;
+        padding: 17px;
+        border: 2px dashed #cfd6e2;
+        border-radius: 14px;
+        background: #fafbfc;
+        color: var(--blue);
+        margin-top: 15px;
+        font-weight: 700;
+        transition: .15s;
+    }
+
+    .new-folder-button:hover {
+        background: var(--blue-light);
+        border-color: var(--blue);
+    }
+
+    .back-button {
+        border: none;
+        background: transparent;
+        color: var(--blue);
+        font-weight: 700;
+        margin-bottom: 20px;
+        font-size: 15px;
+    }
+
+    .new-folder-input {
+        width: 100%;
+        height: 55px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 0 17px;
+        outline: none;
+        margin-bottom: 12px;
+    }
+
+    .new-folder-input:focus {
+        border-color: var(--blue);
+    }
+
+    .create-folder-button {
+        width: 100%;
+        height: 52px;
+        border: none;
+        background: var(--blue);
+        color: white;
+        border-radius: 13px;
+        font-weight: 700;
+    }
+
+    .category-card {
+        padding: 25px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        margin-bottom: 14px;
+        background: white;
+        cursor: pointer;
+        transition: .15s;
+    }
+
+    .category-card:hover {
+        border-color: var(--blue);
+        background: var(--blue-light);
+        transform: translateY(-1px);
+    }
+
+    .category-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .category-card h3 {
+        font-size: 19px;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .category-card p {
+        color: #8992a5;
+        font-size: 14px;
     }
 
     /* ---------------- TOAST ---------------- */
@@ -801,7 +896,6 @@
 <!-- MAIN -->
 <main class="main">
 
-    <!-- TOP BAR -->
     <header class="topbar">
 
         <div class="search-wrapper">
@@ -840,12 +934,10 @@
     </header>
 
 
-    <!-- CONTENT -->
     <section class="content">
 
         <div class="dashboard-grid">
 
-            <!-- RECENT FILES -->
             <section class="card recent-card">
 
                 <div class="card-header">
@@ -866,8 +958,6 @@
 
                 <div class="file-list" id="fileList">
 
-                    <!-- EMPTY STATE -->
-
                     <div class="empty-state" id="emptyState">
 
                         <div class="empty-icon">
@@ -887,10 +977,7 @@
             </section>
 
 
-            <!-- RIGHT SIDE -->
             <div class="right-column">
-
-                <!-- ORGANIZED CARD -->
 
                 <section class="card organized-card">
 
@@ -913,8 +1000,6 @@
                 </section>
 
 
-                <!-- HISTORY -->
-
                 <section class="card history-card">
 
                     <div class="history-header">
@@ -930,6 +1015,7 @@
                     <div id="historyList">
 
                         <div class="empty-state" style="padding: 40px 10px;">
+
                             <div class="empty-icon" style="width:60px;height:60px;font-size:25px;">
                                 ◷
                             </div>
@@ -937,6 +1023,7 @@
                             <h3>No activity yet</h3>
 
                             <p>Your recent actions will appear here.</p>
+
                         </div>
 
                     </div>
@@ -994,7 +1081,20 @@
         localStorage.getItem("tidyspace_history") || "[]"
     );
 
+    let folders = JSON.parse(
+        localStorage.getItem("tidyspace_folders") ||
+        JSON.stringify({
+            "School": [],
+            "Home": [],
+            "Personal Work": []
+        })
+    );
+
     let currentView = "overview";
+
+    let selectedCategory = "";
+
+    let selectedFileIds = [];
 
 
     /* ============================================================
@@ -1011,6 +1111,11 @@
         localStorage.setItem(
             "tidyspace_history",
             JSON.stringify(history)
+        );
+
+        localStorage.setItem(
+            "tidyspace_folders",
+            JSON.stringify(folders)
         );
     }
 
@@ -1207,7 +1312,7 @@
 
     function escapeHTML(text) {
 
-        return text
+        return String(text)
             .replaceAll("&", "&amp;")
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
@@ -1531,19 +1636,351 @@
 
 
     /* ============================================================
-       ADD FILES
+       ADD FILE BUTTON
        ============================================================ */
 
     document
         .getElementById("addFileButton")
         .addEventListener("click", () => {
 
-            document
-                .getElementById("fileInput")
-                .click();
+            openCategorySelector();
 
         });
 
+
+    /* ============================================================
+       STEP 1 — CHOOSE SCHOOL / HOME / PERSONAL WORK
+       ============================================================ */
+
+    function openCategorySelector() {
+
+        openModal(
+            "Where should we put it?",
+            `
+
+                <p style="
+                    color:#7d8799;
+                    margin-bottom:20px;
+                    line-height:1.5;
+                ">
+                    Choose the main folder for your new file.
+                </p>
+
+                <div
+                    class="category-card"
+                    onclick="chooseCategory('School')"
+                >
+
+                    <div class="category-icon">
+                        🎓
+                    </div>
+
+                    <h3>School</h3>
+
+                    <p>
+                        Assign this file to your school folders.
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="category-card"
+                    onclick="chooseCategory('Home')"
+                >
+
+                    <div class="category-icon">
+                        🏠
+                    </div>
+
+                    <h3>Home</h3>
+
+                    <p>
+                        Keep personal home files organized.
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="category-card"
+                    onclick="chooseCategory('Personal Work')"
+                >
+
+                    <div class="category-icon">
+                        💼
+                    </div>
+
+                    <h3>Personal Work</h3>
+
+                    <p>
+                        Store projects and personal work.
+                    </p>
+
+                </div>
+
+            `
+        );
+    }
+
+
+    /* ============================================================
+       STEP 2 — CHOOSE SUBFOLDER
+       ============================================================ */
+
+    function chooseCategory(category) {
+
+        selectedCategory = category;
+
+        openSubfolderSelector(category);
+
+    }
+
+
+    function openSubfolderSelector(category) {
+
+        const categoryFolders =
+            folders[category] || [];
+
+
+        openModal(
+            category,
+            `
+
+                <button
+                    class="back-button"
+                    onclick="openCategorySelector()"
+                >
+                    ← Back
+                </button>
+
+
+                <p style="
+                    color:#7d8799;
+                    margin-bottom:20px;
+                    line-height:1.5;
+                ">
+                    ${
+                        categoryFolders.length > 0
+                        ? "Choose an existing folder or create a new one."
+                        : "You don't have any folders here yet. Create your first one."
+                    }
+                </p>
+
+
+                ${
+                    categoryFolders.map(folder => `
+
+                        <button
+                            class="folder-option"
+                            onclick="chooseSubfolder('${escapeForJS(folder)}')"
+                        >
+
+                            <strong>
+                                ▱ ${escapeHTML(folder)}
+                            </strong>
+
+                            <small>
+                                ${category} / ${escapeHTML(folder)}
+                            </small>
+
+                        </button>
+
+                    `).join("")
+                }
+
+
+                <button
+                    class="new-folder-button"
+                    onclick="showNewFolderForm()"
+                >
+                    ＋ New file
+                </button>
+
+            `
+        );
+    }
+
+
+    /* ============================================================
+       STEP 3 — CREATE NEW FOLDER
+       ============================================================ */
+
+    function showNewFolderForm() {
+
+        openModal(
+            "New file",
+            `
+
+                <button
+                    class="back-button"
+                    onclick="openSubfolderSelector('${escapeForJS(selectedCategory)}')"
+                >
+                    ← Back
+                </button>
+
+
+                <p style="
+                    color:#7d8799;
+                    margin-bottom:18px;
+                    line-height:1.5;
+                ">
+                    Give your new folder a name.
+                </p>
+
+
+                <input
+                    id="newFolderInput"
+                    class="new-folder-input"
+                    type="text"
+                    placeholder="e.g. Math"
+                    maxlength="50"
+                    autofocus
+                >
+
+
+                <button
+                    class="create-folder-button"
+                    onclick="createNewFolder()"
+                >
+                    Create folder
+                </button>
+
+            `
+        );
+
+
+        setTimeout(() => {
+
+            const input =
+                document.getElementById(
+                    "newFolderInput"
+                );
+
+            if (input) {
+                input.focus();
+
+                input.addEventListener(
+                    "keydown",
+                    event => {
+
+                        if (event.key === "Enter") {
+                            createNewFolder();
+                        }
+
+                    }
+                );
+            }
+
+        }, 50);
+    }
+
+
+    function createNewFolder() {
+
+        const input =
+            document.getElementById(
+                "newFolderInput"
+            );
+
+        if (!input) return;
+
+        const folderName =
+            input.value.trim();
+
+
+        if (!folderName) {
+
+            showToast(
+                "Please enter a name"
+            );
+
+            return;
+        }
+
+
+        if (!folders[selectedCategory]) {
+            folders[selectedCategory] = [];
+        }
+
+
+        const alreadyExists =
+            folders[selectedCategory]
+                .some(
+                    folder =>
+                        folder.toLowerCase() ===
+                        folderName.toLowerCase()
+                );
+
+
+        if (alreadyExists) {
+
+            showToast(
+                "That folder already exists"
+            );
+
+            return;
+        }
+
+
+        folders[selectedCategory].push(
+            folderName
+        );
+
+
+        saveData();
+
+        addHistory(
+            "Created " +
+            selectedCategory +
+            " / " +
+            folderName
+        );
+
+
+        /*
+         * After creating the folder, automatically
+         * select it for the file being added.
+         */
+
+        chooseSubfolder(folderName);
+    }
+
+
+    /* ============================================================
+       STEP 4 — CHOOSE SUBFOLDER AND OPEN FILE PICKER
+       ============================================================ */
+
+    function chooseSubfolder(folder) {
+
+        const category =
+            selectedCategory;
+
+        selectedFileIds = [];
+
+        closeModal();
+
+        /*
+         * Store the destination so that when
+         * the user chooses a real file from their
+         * computer, it goes into this folder.
+         */
+
+        window.selectedUploadFolder = {
+            category: category,
+            subfolder: folder
+        };
+
+
+        document
+            .getElementById("fileInput")
+            .click();
+    }
+
+
+    /* ============================================================
+       FILE INPUT
+       ============================================================ */
 
     document
         .getElementById("fileInput")
@@ -1552,7 +1989,27 @@
             const selectedFiles =
                 Array.from(event.target.files);
 
+
+            if (
+                selectedFiles.length === 0
+            ) {
+                return;
+            }
+
+
+            const destination =
+                window.selectedUploadFolder;
+
+
             selectedFiles.forEach(file => {
+
+                const folderPath =
+                    destination
+                    ? destination.category +
+                      " / " +
+                      destination.subfolder
+                    : "";
+
 
                 files.push({
 
@@ -1569,15 +2026,30 @@
 
                     type: file.type,
 
-                    folder: "",
+                    folder: folderPath,
+
+                    category:
+                        destination
+                        ? destination.category
+                        : "",
+
+                    subfolder:
+                        destination
+                        ? destination.subfolder
+                        : "",
 
                     timestamp: Date.now()
 
                 });
 
+
                 addHistory(
                     file.name +
-                    " added to TidySpace"
+                    " added to " +
+                    (
+                        folderPath ||
+                        "TidySpace"
+                    )
                 );
 
             });
@@ -1589,12 +2061,25 @@
 
             updateCounts();
 
+
             showToast(
                 selectedFiles.length +
                 " file" +
-                (selectedFiles.length === 1 ? "" : "s") +
-                " added"
+                (
+                    selectedFiles.length === 1
+                    ? ""
+                    : "s"
+                ) +
+                " added to " +
+                (
+                    destination
+                    ? destination.category +
+                      " / " +
+                      destination.subfolder
+                    : "TidySpace"
+                )
             );
+
 
             event.target.value = "";
 
@@ -1614,15 +2099,18 @@
 
         if (!file) return;
 
+
         files =
             files.filter(
                 item => item.id !== id
             );
 
+
         addHistory(
             file.name +
             " deleted"
         );
+
 
         saveData();
 
@@ -1630,7 +2118,9 @@
 
         updateCounts();
 
-        showToast("File deleted");
+        showToast(
+            "File deleted"
+        );
     }
 
 
@@ -1640,40 +2130,51 @@
 
     document
         .getElementById("searchInput")
-        .addEventListener("input", () => {
+        .addEventListener(
+            "input",
+            () => {
 
-            if (currentView !== "activity") {
-                renderFiles();
+                if (
+                    currentView !== "activity"
+                ) {
+                    renderFiles();
+                }
+
             }
-
-        });
+        );
 
 
     /* ============================================================
        KEYBOARD SHORTCUT
        ============================================================ */
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener(
+        "keydown",
+        event => {
 
-        if (
-            (event.metaKey || event.ctrlKey)
-            &&
-            event.key.toLowerCase() === "k"
-        ) {
+            if (
+                (event.metaKey || event.ctrlKey)
+                &&
+                event.key.toLowerCase() === "k"
+            ) {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            document
-                .getElementById("searchInput")
-                .focus();
+                document
+                    .getElementById("searchInput")
+                    .focus();
+
+            }
+
+
+            if (
+                event.key === "Escape"
+            ) {
+                closeModal();
+            }
 
         }
-
-        if (event.key === "Escape") {
-            closeModal();
-        }
-
-    });
+    );
 
 
     /* ============================================================
@@ -1687,9 +2188,11 @@
             button.addEventListener(
                 "click",
                 () => {
+
                     changeView(
                         button.dataset.view
                     );
+
                 }
             );
 
@@ -1702,20 +2205,26 @@
 
     document
         .getElementById("browseButton")
-        .addEventListener("click", () => {
+        .addEventListener(
+            "click",
+            () => {
 
-            changeView("files");
+                changeView("files");
 
-        });
+            }
+        );
 
 
     document
         .getElementById("viewFoldersButton")
-        .addEventListener("click", () => {
+        .addEventListener(
+            "click",
+            () => {
 
-            openFoldersModal();
+                openFoldersModal();
 
-        });
+            }
+        );
 
 
     /* ============================================================
@@ -1727,23 +2236,33 @@
             "modalOverlay"
         );
 
-    function openModal(title, content) {
+
+    function openModal(
+        title,
+        content
+    ) {
 
         document.getElementById(
             "modalTitle"
         ).textContent = title;
 
+
         document.getElementById(
             "modalContent"
         ).innerHTML = content;
 
-        modal.classList.add("show");
+
+        modal.classList.add(
+            "show"
+        );
     }
 
 
     function closeModal() {
 
-        modal.classList.remove("show");
+        modal.classList.remove(
+            "show"
+        );
     }
 
 
@@ -1762,7 +2281,9 @@
             if (
                 event.target === modal
             ) {
+
                 closeModal();
+
             }
 
         }
@@ -1770,77 +2291,64 @@
 
 
     /* ============================================================
-       FOLDERS
+       VIEW FOLDERS
        ============================================================ */
 
     function openFoldersModal() {
 
-        const folders = [
+        const categories = [
             "School",
-            "School / Math",
-            "School / Science",
-            "School / English",
-            "School / Italian",
-            "Personal Work",
-            "Projects",
-            "Home"
+            "Home",
+            "Personal Work"
         ];
 
 
         openModal(
-            "Choose a folder",
+            "Your folders",
             `
 
                 <p style="
                     color:#7d8799;
-                    margin-bottom:15px;
+                    margin-bottom:20px;
                 ">
-                    Select a folder for an unorganized file.
+                    Browse your TidySpace folders.
                 </p>
 
+
                 ${
-                    files.length === 0
+                    categories.map(category => `
 
-                    ? `
-                        <div class="empty-state"
-                             style="padding:30px 0;">
-                            <h3>No files to organize</h3>
-                        </div>
-                    `
+                        <button
+                            class="folder-option"
+                            onclick="showFolderContents('${escapeForJS(category)}')"
+                        >
 
-                    : files
-                        .filter(file => !file.folder)
-                        .map(file => `
-
-                            <div style="
-                                margin-bottom:20px;
-                                padding-bottom:18px;
-                                border-bottom:1px solid #edf0f5;
-                            ">
-
-                                <strong>
-                                    ${escapeHTML(file.name)}
-                                </strong>
-
+                            <strong>
                                 ${
-                                    folders.map(folder => `
-
-                                        <button
-                                            class="folder-option"
-                                            onclick="assignFolder(
-                                                '${file.id}',
-                                                '${folder}'
-                                            )"
-                                        >
-                                            ▱ ${folder}
-                                        </button>
-
-                                    `).join("")
+                                    category === "School"
+                                    ? "🎓"
+                                    : category === "Home"
+                                    ? "🏠"
+                                    : "💼"
                                 }
 
-                            </div>
+                                ${category}
+                            </strong>
 
-                        `).join("")
+                            <small>
+                                ${
+                                    (folders[category] || []).length
+                                }
+                                folder${
+                                    (folders[category] || []).length === 1
+                                    ? ""
+                                    : "s"
+                                }
+                            </small>
+
+                        </button>
+
+                    `).join("")
                 }
 
             `
@@ -1848,35 +2356,133 @@
     }
 
 
-    function assignFolder(id, folder) {
+    /* ============================================================
+       SHOW FOLDER CONTENTS
+       ============================================================ */
 
-        const file =
-            files.find(
-                item => item.id === id
+    function showFolderContents(category) {
+
+        const categoryFolders =
+            folders[category] || [];
+
+
+        const categoryFiles =
+            files.filter(
+                file =>
+                    file.category === category
             );
 
-        if (!file) return;
 
-        file.folder = folder;
+        openModal(
+            category,
+            `
 
-        addHistory(
-            file.name +
-            " organized into " +
-            folder
+                <button
+                    class="back-button"
+                    onclick="openFoldersModal()"
+                >
+                    ← Back
+                </button>
+
+
+                <p style="
+                    color:#7d8799;
+                    margin-bottom:18px;
+                ">
+                    ${category}
+                </p>
+
+
+                ${
+                    categoryFolders.length === 0
+
+                    ? `
+                        <div class="empty-state"
+                             style="padding:30px 10px;">
+
+                            <div class="empty-icon"
+                                 style="width:60px;height:60px;font-size:25px;">
+                                📁
+                            </div>
+
+                            <h3>
+                                No folders yet
+                            </h3>
+
+                            <p>
+                                Create one when adding a file.
+                            </p>
+
+                        </div>
+                    `
+
+                    :
+
+                    categoryFolders.map(
+                        folder => {
+
+                            const folderFiles =
+                                categoryFiles.filter(
+                                    file =>
+                                        file.subfolder ===
+                                        folder
+                                );
+
+
+                            return `
+
+                                <div
+                                    style="
+                                        padding:18px;
+                                        border:1px solid #e4e8f0;
+                                        border-radius:15px;
+                                        margin-bottom:12px;
+                                    "
+                                >
+
+                                    <strong>
+                                        ▱
+                                        ${escapeHTML(folder)}
+                                    </strong>
+
+                                    <div
+                                        style="
+                                            color:#8992a5;
+                                            font-size:14px;
+                                            margin-top:6px;
+                                        "
+                                    >
+                                        ${folderFiles.length}
+                                        file${
+                                            folderFiles.length === 1
+                                            ? ""
+                                            : "s"
+                                        }
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    ).join("")
+                }
+
+            `
         );
+    }
 
-        saveData();
 
-        closeModal();
+    /* ============================================================
+       ESCAPE JAVASCRIPT STRINGS
+       ============================================================ */
 
-        renderFiles();
+    function escapeForJS(text) {
 
-        updateCounts();
-
-        showToast(
-            file.name +
-            " organized"
-        );
+        return String(text)
+            .replaceAll("\\", "\\\\")
+            .replaceAll("'", "\\'")
+            .replaceAll('"', '\\"');
     }
 
 
@@ -1915,6 +2521,7 @@
                     `
                 );
 
+
                 document
                     .getElementById(
                         "notificationDot"
@@ -1947,21 +2554,29 @@
                             <p>
                                 <strong>1. Add files</strong><br>
                                 Click "Add a file" and choose
-                                files from your computer.
+                                School, Home or Personal Work.
                             </p>
 
                             <br>
 
                             <p>
-                                <strong>2. Organize</strong><br>
-                                Files without folders appear
-                                under "Needs organizing".
+                                <strong>2. Choose a folder</strong><br>
+                                Select an existing folder or
+                                create a new one.
                             </p>
 
                             <br>
 
                             <p>
-                                <strong>3. Search</strong><br>
+                                <strong>3. Create folders</strong><br>
+                                For example, inside School you
+                                can create Math, Science or English.
+                            </p>
+
+                            <br>
+
+                            <p>
+                                <strong>4. Search</strong><br>
                                 Use the search bar to quickly
                                 find files.
                             </p>
@@ -1969,7 +2584,7 @@
                             <br>
 
                             <p>
-                                <strong>4. Activity</strong><br>
+                                <strong>5. Activity</strong><br>
                                 TidySpace records important
                                 actions in your history.
                             </p>
@@ -2012,6 +2627,7 @@
         updateCounts();
 
     }
+
 
     initialize();
 
