@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TidySpace</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --blue: #3f7df5;
+        --blue-light: #eaf1ff;
+        --dark: #20283a;
+        --text: #30384b;
+        --muted: #8992a5;
+        --border: #e4e8f0;
+        --background: #f7f8fc;
+        --white: #ffffff;
+        --green: #3aa56d;
+        --green-light: #eaf8f0;
+        --red: #df5660;
+        --red-light: #fff0f1;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     Roboto, Helvetica, Arial, sans-serif;
+        background: var(--background);
+        color: var(--text);
+        min-height: 100vh;
+    }
+
+    button,
+    input,
+    select {
+        font: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    /* ---------------- SIDEBAR ---------------- */
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 345px;
+        background: white;
+        border-right: 1px solid var(--border);
+        padding: 38px 24px;
+        z-index: 20;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 5px 20px 50px;
+    }
+
+    .logo-icon {
+        width: 43px;
+        height: 43px;
+        border-radius: 13px;
+        background: #20283a;
+        position: relative;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+
+    .logo-icon::before {
+        content: "";
+        position: absolute;
+        width: 27px;
+        height: 16px;
+        background: #78a8ff;
+        border-radius: 5px;
+        top: 6px;
+        left: 8px;
+        transform: rotate(-5deg);
+    }
+
+    .logo-icon::after {
+        content: "";
+        position: absolute;
+        width: 11px;
+        height: 11px;
+        background: #75d7a6;
+        border-radius: 3px;
+        left: 9px;
+        bottom: 7px;
+        box-shadow: 15px 0 #ad8ce9;
+    }
+
+    .logo-text {
+        font-size: 25px;
+        font-weight: 750;
+        letter-spacing: -0.7px;
+        color: #20283a;
+    }
+
+    .logo-text span {
+        color: var(--blue);
+    }
+
+    .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-button {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #697386;
+        padding: 17px 23px;
+        border-radius: 17px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 19px;
+        font-weight: 600;
+        text-align: left;
+        transition: .2s;
+    }
+
+    .nav-button:hover {
+        background: #f4f6fa;
+        color: var(--dark);
+    }
+
+    .nav-button.active {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .nav-icon {
+        width: 27px;
+        height: 27px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 23px;
+    }
+
+    .organizing-count {
+        margin-left: auto;
+        width: 35px;
+        height: 35px;
+        background: var(--blue);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* ---------------- MAIN ---------------- */
+
+    .main {
+        margin-left: 345px;
+        min-height: 100vh;
+    }
+
+    .topbar {
+        height: 126px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 55px;
+        gap: 25px;
+    }
+
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 600px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 25px;
+        color: #8992a5;
+        pointer-events: none;
+    }
+
+    .search-input {
+        width: 100%;
+        height: 65px;
+        border: 1px solid #dce2ec;
+        border-radius: 18px;
+        outline: none;
+        padding: 0 65px;
+        font-size: 18px;
+        color: var(--dark);
+        background: white;
+        box-shadow: 0 2px 7px rgba(32,40,58,.03);
+    }
+
+    .search-input:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 4px rgba(63,125,245,.08);
+    }
+
+    .shortcut {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1px solid #dce2ec;
+        border-radius: 7px;
+        padding: 5px 9px;
+        color: #8992a5;
+        font-size: 13px;
+    }
+
+    .topbar-button {
+        width: 63px;
+        height: 63px;
+        border: 1px solid #dce2ec;
+        background: white;
+        border-radius: 17px;
+        font-size: 25px;
+        color: #697386;
+        position: relative;
+    }
+
+    .topbar-button:hover {
+        background: #f6f8fb;
+    }
+
+    .notification-dot {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        width: 8px;
+        height: 8px;
+        background: var(--blue);
+        border-radius: 50%;
+    }
+
+    .add-button {
+        height: 67px;
+        padding: 0 29px;
+        border: none;
+        border-radius: 17px;
+        background: var(--dark);
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        box-shadow: 0 7px 17px rgba(32,40,58,.14);
+        transition: .2s;
+    }
+
+    .add-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(32,40,58,.18);
+    }
+
+    /* ---------------- CONTENT ---------------- */
+
+    .content {
+        padding: 32px 55px 70px;
+        max-width: 1500px;
+        margin: auto;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: minmax(500px, 1fr) 395px;
+        gap: 40px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 27px;
+        overflow: hidden;
+    }
+
+    .recent-card {
+        min-height: 770px;
+    }
+
+    .card-header {
+        padding: 36px 38px 24px;
+    }
+
+    .card-title {
+        font-size: 27px;
+        font-weight: 750;
+        color: #20283a;
+        margin-bottom: 7px;
+    }
+
+    .card-subtitle {
+        color: #707b90;
+        font-size: 17px;
+        font-weight: 500;
+    }
+
+    .browse-button {
+        float: right;
+        margin-top: -38px;
+        border: none;
+        background: transparent;
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 17px;
+    }
+
+    .browse-button:hover {
+        text-decoration: underline;
+    }
+
+    .file-list {
+        padding: 0 38px 25px;
+    }
+
+    .file-row {
+        min-height: 106px;
+        border-top: 1px solid #edf0f5;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+    }
+
+    .file-type {
+        width: 55px;
+        height: 55px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .type-pdf {
+        background: #fff0f1;
+        color: #dc5963;
+    }
+
+    .type-doc {
+        background: #edf3ff;
+        color: #4d7fe9;
+    }
+
+    .type-img {
+        background: #f1ebff;
+        color: #875ee5;
+    }
+
+    .type-other {
+        background: #eef2f6;
+        color: #6d7789;
+    }
+
+    .file-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .file-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #30384b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 7px;
+    }
+
+    .file-meta {
+        color: #7f899b;
+        font-size: 14px;
+    }
+
+    .file-folder {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #717b8e;
+        font-size: 15px;
+        min-width: 180px;
+    }
+
+    .file-time {
+        color: #7f899b;
+        min-width: 80px;
+        text-align: right;
+        font-size: 15px;
+    }
+
+    .delete-file {
+        border: none;
+        background: transparent;
+        color: #a0a8b7;
+        font-size: 18px;
+        margin-left: 8px;
+        opacity: 0;
+        transition: .15s;
+    }
+
+    .file-row:hover .delete-file {
+        opacity: 1;
+    }
+
+    .delete-file:hover {
+        color: var(--red);
+    }
+
+    /* ---------------- EMPTY STATE ---------------- */
+
+    .empty-state {
+        padding: 100px 35px;
+        text-align: center;
+        color: #8a93a5;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: auto auto 20px;
+        border-radius: 25px;
+        background: #f1f4f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 35px;
+    }
+
+    .empty-state h3 {
+        color: #30384b;
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    /* ---------------- RIGHT CARDS ---------------- */
+
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .organized-card {
+        min-height: 330px;
+        border: 1px solid #f0d99b;
+        background: #fffdf7;
+        padding: 38px;
+    }
+
+    .sparkle {
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+        background: #fff2cf;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin-bottom: 27px;
+    }
+
+    .organized-card h2 {
+        font-size: 23px;
+        color: #20283a;
+        margin-bottom: 13px;
+    }
+
+    .organized-card p {
+        font-size: 17px;
+        line-height: 1.5;
+        color: #7d8799;
+        margin-bottom: 27px;
+    }
+
+    .view-folders {
+        border: none;
+        background: var(--blue);
+        color: white;
+        border-radius: 15px;
+        padding: 15px 23px;
+        font-size: 16px;
+        font-weight: 700;
+        box-shadow: 0 6px 15px rgba(63,125,245,.2);
+    }
+
+    .view-folders:hover {
+        background: #316de2;
+    }
+
+    .history-card {
+        min-height: 420px;
+        padding: 35px;
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .history-header h2 {
+        font-size: 23px;
+        color: #20283a;
+    }
+
+    .see-all {
+        border: none;
+        background: transparent;
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .history-item {
+        display: flex;
+        gap: 17px;
+        padding: 17px 0;
+        border-top: 1px solid #eef1f5;
+    }
+
+    .history-check {
+        width: 42px;
+        height: 42px;
+        background: var(--green-light);
+        color: var(--green);
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 19px;
+    }
+
+    .history-text {
+        font-size: 15px;
+        line-height: 1.4;
+        color: #30384b;
+    }
+
+    .history-time {
+        color: #9ba3b1;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    /* ---------------- MODAL ---------------- */
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(24,31,45,.45);
+        backdrop-filter: blur(5px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 20px;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal {
+        background: white;
+        width: 100%;
+        max-width: 650px;
+        border-radius: 25px;
+        padding: 32px;
+        box-shadow: 0 25px 80px rgba(0,0,0,.18);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .modal-header h2 {
+        font-size: 25px;
+        color: var(--dark);
+    }
+
+    .close-modal {
+        border: none;
+        background: #f2f4f8;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 20px;
+        color: #687386;
+    }
+
+    .modal-search {
+        width: 100%;
+        height: 55px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 0 18px;
+        outline: none;
+        margin-bottom: 18px;
+    }
+
+    .modal-search:focus {
+        border-color: var(--blue);
+    }
+
+    .folder-option {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: white;
+        margin-top: 10px;
+        text-align: left;
+        color: var(--text);
+    }
+
+    .folder-option:hover {
+        background: var(--blue-light);
+        border-color: #bfd2ff;
+    }
+
+    /* ---------------- TOAST ---------------- */
+
+    .toast {
+        position: fixed;
+        right: 30px;
+        bottom: 30px;
+        background: var(--dark);
+        color: white;
+        padding: 16px 22px;
+        border-radius: 14px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: .25s;
+        z-index: 200;
+    }
+
+    .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    /* ---------------- RESPONSIVE ---------------- */
+
+    @media (max-width: 1200px) {
+        .sidebar {
+            width: 250px;
+        }
+
+        .main {
+            margin-left: 250px;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .right-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .topbar {
+            padding: 0 30px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+    }
+
+    @media (max-width: 800px) {
+        .sidebar {
+            position: static;
+            width: 100%;
+            height: auto;
+            padding: 15px;
+        }
+
+        .logo {
+            padding: 10px 15px 20px;
+        }
+
+        .nav {
+            flex-direction: row;
+            overflow-x: auto;
+        }
+
+        .nav-button {
+            min-width: max-content;
+        }
+
+        .main {
+            margin-left: 0;
+        }
+
+        .topbar {
+            height: auto;
+            padding: 18px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            min-width: 100%;
+            order: -1;
+        }
+
+        .content {
+            padding: 18px;
+        }
+
+        .dashboard-grid {
+            display: block;
+        }
+
+        .right-column {
+            display: block;
+            margin-top: 20px;
+        }
+
+        .organized-card,
+        .history-card {
+            margin-bottom: 20px;
+        }
+
+        .file-folder,
+        .file-time {
+            display: none;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-icon"></div>
+
+        <div class="logo-text">
+            Tidy<span>Space</span>
+        </div>
+    </div>
+
+    <nav class="nav">
+
+        <button class="nav-button active" data-view="overview">
+            <span class="nav-icon">▦</span>
+            <span>Overview</span>
+        </button>
+
+        <button class="nav-button" data-view="files">
+            <span class="nav-icon">▢</span>
+            <span>My files</span>
+        </button>
+
+        <button class="nav-button" data-view="organizing">
+            <span class="nav-icon">✦</span>
+            <span>Needs organizing</span>
+            <span class="organizing-count" id="organizingCount">0</span>
+        </button>
+
+        <button class="nav-button" data-view="activity">
+            <span class="nav-icon">◷</span>
+            <span>Activity</span>
+        </button>
+
+    </nav>
+
+</aside>
+
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+
+        <div class="search-wrapper">
+            <span class="search-icon">⌕</span>
+
+            <input
+                id="searchInput"
+                class="search-input"
+                type="text"
+                placeholder="Search files and folders"
+            >
+
+            <span class="shortcut">⌘ K</span>
+        </div>
+
+        <button class="topbar-button" id="notificationButton">
+            ♧
+            <span class="notification-dot" id="notificationDot"></span>
+        </button>
+
+        <button class="topbar-button" id="helpButton">
+            ?
+        </button>
+
+        <button class="add-button" id="addFileButton">
+            ＋ Add a file
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            multiple
+            hidden
+        >
+
+    </header>
+
+
+    <!-- CONTENT -->
+    <section class="content">
+
+        <div class="dashboard-grid">
+
+            <!-- RECENT FILES -->
+            <section class="card recent-card">
+
+                <div class="card-header">
+
+                    <button class="browse-button" id="browseButton">
+                        Browse all
+                    </button>
+
+                    <h1 class="card-title" id="sectionTitle">
+                        Recent files
+                    </h1>
+
+                    <p class="card-subtitle" id="sectionSubtitle">
+                        The things you just touched
+                    </p>
+
+                </div>
+
+                <div class="file-list" id="fileList">
+
+                    <!-- EMPTY STATE -->
+
+                    <div class="empty-state" id="emptyState">
+
+                        <div class="empty-icon">
+                            📁
+                        </div>
+
+                        <h3>No files yet</h3>
+
+                        <p>
+                            Add your first file to start organizing your space.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RIGHT SIDE -->
+            <div class="right-column">
+
+                <!-- ORGANIZED CARD -->
+
+                <section class="card organized-card">
+
+                    <div class="sparkle">
+                        ✦
+                    </div>
+
+                    <h2 id="organizationTitle">
+                        Everything is organized
+                    </h2>
+
+                    <p id="organizationText">
+                        Nice work. New files will be shown here if you skip organizing them.
+                    </p>
+
+                    <button class="view-folders" id="viewFoldersButton">
+                        View folders →
+                    </button>
+
+                </section>
+
+
+                <!-- HISTORY -->
+
+                <section class="card history-card">
+
+                    <div class="history-header">
+
+                        <h2>A little history</h2>
+
+                        <button class="see-all" id="historyButton">
+                            See all
+                        </button>
+
+                    </div>
+
+                    <div id="historyList">
+
+                        <div class="empty-state" style="padding: 40px 10px;">
+                            <div class="empty-icon" style="width:60px;height:60px;font-size:25px;">
+                                ◷
+                            </div>
+
+                            <h3>No activity yet</h3>
+
+                            <p>Your recent actions will appear here.</p>
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2 id="modalTitle">
+                Files
+            </h2>
+
+            <button class="close-modal" id="closeModal">
+                ×
+            </button>
+
+        </div>
+
+        <div id="modalContent"></div>
+
+    </div>
+
+</div>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+    /* ============================================================
+       TIDYSPACE DATA
+       ============================================================ */
+
+    let files = JSON.parse(
+        localStorage.getItem("tidyspace_files") || "[]"
+    );
+
+    let history = JSON.parse(
+        localStorage.getItem("tidyspace_history") || "[]"
+    );
+
+    let currentView = "overview";
+
+
+    /* ============================================================
+       SAVE DATA
+       ============================================================ */
+
+    function saveData() {
+
+        localStorage.setItem(
+            "tidyspace_files",
+            JSON.stringify(files)
+        );
+
+        localStorage.setItem(
+            "tidyspace_history",
+            JSON.stringify(history)
+        );
+    }
+
+
+    /* ============================================================
+       FILE TYPE
+       ============================================================ */
+
+    function getFileType(name) {
+
+        const extension =
+            name.split(".").pop().toLowerCase();
+
+        if (extension === "pdf") {
+            return {
+                label: "PDF",
+                className: "type-pdf"
+            };
+        }
+
+        if (
+            ["doc", "docx", "txt", "rtf"].includes(extension)
+        ) {
+            return {
+                label: "DOC",
+                className: "type-doc"
+            };
+        }
+
+        if (
+            ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension)
+        ) {
+            return {
+                label: "IMG",
+                className: "type-img"
+            };
+        }
+
+        return {
+            label: extension.toUpperCase().slice(0, 4),
+            className: "type-other"
+        };
+    }
+
+
+    /* ============================================================
+       FILE SIZE
+       ============================================================ */
+
+    function formatSize(bytes) {
+
+        if (!bytes) return "0 KB";
+
+        const units = ["B", "KB", "MB", "GB"];
+
+        const index =
+            Math.floor(
+                Math.log(bytes) / Math.log(1024)
+            );
+
+        return (
+            (bytes / Math.pow(1024, index)).toFixed(
+                index === 0 ? 0 : 1
+            )
+            + " "
+            + units[index]
+        );
+    }
+
+
+    /* ============================================================
+       TIME
+       ============================================================ */
+
+    function timeAgo(timestamp) {
+
+        const seconds =
+            Math.floor(
+                (Date.now() - timestamp) / 1000
+            );
+
+        if (seconds < 60) {
+            return "Just now";
+        }
+
+        const minutes = Math.floor(seconds / 60);
+
+        if (minutes < 60) {
+            return minutes + " min ago";
+        }
+
+        const hours = Math.floor(minutes / 60);
+
+        if (hours < 24) {
+            return hours + " hr ago";
+        }
+
+        const days = Math.floor(hours / 24);
+
+        return days + " day" + (days === 1 ? "" : "s") + " ago";
+    }
+
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+
+    function showToast(message) {
+
+        const toast =
+            document.getElementById("toast");
+
+        toast.textContent = message;
+
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
+    }
+
+
+    /* ============================================================
+       HISTORY
+       ============================================================ */
+
+    function addHistory(message) {
+
+        history.unshift({
+            message: message,
+            timestamp: Date.now()
+        });
+
+        history =
+            history.slice(0, 10);
+
+        saveData();
+
+        renderHistory();
+    }
+
+
+    function renderHistory() {
+
+        const container =
+            document.getElementById("historyList");
+
+        if (history.length === 0) {
+
+            container.innerHTML = `
+                <div class="empty-state" style="padding:40px 10px;">
+                    <div class="empty-icon"
+                         style="width:60px;height:60px;font-size:25px;">
+                        ◷
+                    </div>
+
+                    <h3>No activity yet</h3>
+
+                    <p>Your recent actions will appear here.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+        container.innerHTML =
+            history.slice(0, 3).map(item => `
+                <div class="history-item">
+
+                    <div class="history-check">
+                        ✓
+                    </div>
+
+                    <div class="history-text">
+
+                        <strong>
+                            ${escapeHTML(item.message)}
+                        </strong>
+
+                        <div class="history-time">
+                            ${timeAgo(item.timestamp)}
+                        </div>
+
+                    </div>
+
+                </div>
+            `).join("");
+    }
+
+
+    /* ============================================================
+       ESCAPE HTML
+       ============================================================ */
+
+    function escapeHTML(text) {
+
+        return text
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    /* ============================================================
+       RENDER FILES
+       ============================================================ */
+
+    function renderFiles() {
+
+        const list =
+            document.getElementById("fileList");
+
+        const search =
+            document.getElementById("searchInput")
+                .value
+                .toLowerCase();
+
+        let visibleFiles =
+            files.filter(file =>
+                file.name
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+
+        if (currentView === "organizing") {
+
+            visibleFiles =
+                visibleFiles.filter(
+                    file => !file.folder
+                );
+        }
+
+
+        if (currentView === "overview") {
+
+            visibleFiles =
+                visibleFiles
+                    .sort((a,b) =>
+                        b.timestamp - a.timestamp
+                    )
+                    .slice(0, 8);
+        }
+
+
+        if (visibleFiles.length === 0) {
+
+            list.innerHTML = `
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        ${
+                            currentView === "organizing"
+                            ? "✓"
+                            : "📁"
+                        }
+                    </div>
+
+                    <h3>
+                        ${
+                            currentView === "organizing"
+                            ? "Nothing needs organizing"
+                            : "No files found"
+                        }
+                    </h3>
+
+                    <p>
+                        ${
+                            currentView === "organizing"
+                            ? "All your files are organized."
+                            : "Try adding a file or changing your search."
+                        }
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        list.innerHTML =
+            visibleFiles.map(file => {
+
+                const type =
+                    getFileType(file.name);
+
+                return `
+
+                    <div class="file-row">
+
+                        <div class="file-type ${type.className}">
+                            ${type.label}
+                        </div>
+
+                        <div class="file-info">
+
+                            <div class="file-name"
+                                 title="${escapeHTML(file.name)}">
+
+                                ${escapeHTML(file.name)}
+
+                            </div>
+
+                            <div class="file-meta">
+                                ${formatSize(file.size)}
+                                ·
+                                ${type.label} file
+                            </div>
+
+                        </div>
+
+                        <div class="file-folder">
+
+                            <span>▱</span>
+
+                            ${
+                                file.folder
+                                ? escapeHTML(file.folder)
+                                : "Needs organizing"
+                            }
+
+                        </div>
+
+                        <div class="file-time">
+                            ${timeAgo(file.timestamp)}
+                        </div>
+
+                        <button
+                            class="delete-file"
+                            onclick="deleteFile('${file.id}')"
+                            title="Delete file"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                `;
+
+            }).join("");
+    }
+
+
+    /* ============================================================
+       UPDATE COUNTS
+       ============================================================ */
+
+    function updateCounts() {
+
+        const organizing =
+            files.filter(
+                file => !file.folder
+            ).length;
+
+        document.getElementById(
+            "organizingCount"
+        ).textContent = organizing;
+
+
+        const title =
+            document.getElementById(
+                "organizationTitle"
+            );
+
+        const text =
+            document.getElementById(
+                "organizationText"
+            );
+
+
+        if (files.length === 0) {
+
+            title.textContent =
+                "Everything is organized";
+
+            text.textContent =
+                "Nice work. New files will be shown here if you skip organizing them.";
+
+        } else if (organizing === 0) {
+
+            title.textContent =
+                "Everything is organized";
+
+            text.textContent =
+                "Nice work. Every file currently has a folder.";
+
+        } else {
+
+            title.textContent =
+                organizing + " file" +
+                (organizing === 1 ? "" : "s") +
+                " need organizing";
+
+            text.textContent =
+                "You have files waiting to be assigned to a folder.";
+        }
+    }
+
+
+    /* ============================================================
+       VIEW
+       ============================================================ */
+
+    function changeView(view) {
+
+        currentView = view;
+
+        document
+            .querySelectorAll(".nav-button")
+            .forEach(button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.view === view
+                );
+
+            });
+
+
+        const title =
+            document.getElementById(
+                "sectionTitle"
+            );
+
+        const subtitle =
+            document.getElementById(
+                "sectionSubtitle"
+            );
+
+
+        if (view === "overview") {
+
+            title.textContent =
+                "Recent files";
+
+            subtitle.textContent =
+                "The things you just touched";
+
+        } else if (view === "files") {
+
+            title.textContent =
+                "My files";
+
+            subtitle.textContent =
+                files.length +
+                " file" +
+                (files.length === 1 ? "" : "s") +
+                " in your space";
+
+        } else if (view === "organizing") {
+
+            title.textContent =
+                "Needs organizing";
+
+            subtitle.textContent =
+                "Files waiting for a folder";
+
+        } else if (view === "activity") {
+
+            title.textContent =
+                "Activity";
+
+            subtitle.textContent =
+                "Your recent actions";
+        }
+
+
+        if (view === "activity") {
+
+            document.getElementById(
+                "fileList"
+            ).innerHTML = history.length
+
+                ? history.map(item => `
+
+                    <div class="history-item"
+                         style="padding:20px 0;">
+
+                        <div class="history-check">
+                            ✓
+                        </div>
+
+                        <div class="history-text">
+
+                            <strong>
+                                ${escapeHTML(item.message)}
+                            </strong>
+
+                            <div class="history-time">
+                                ${timeAgo(item.timestamp)}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `).join("")
+
+                : `
+                    <div class="empty-state">
+                        <div class="empty-icon">◷</div>
+                        <h3>No activity yet</h3>
+                        <p>Your actions will appear here.</p>
+                    </div>
+                `;
+
+            return;
+        }
+
+
+        renderFiles();
+    }
+
+
+    /* ============================================================
+       ADD FILES
+       ============================================================ */
+
+    document
+        .getElementById("addFileButton")
+        .addEventListener("click", () => {
+
+            document
+                .getElementById("fileInput")
+                .click();
+
+        });
+
+
+    document
+        .getElementById("fileInput")
+        .addEventListener("change", event => {
+
+            const selectedFiles =
+                Array.from(event.target.files);
+
+            selectedFiles.forEach(file => {
+
+                files.push({
+
+                    id:
+                        Date.now().toString()
+                        +
+                        Math.random()
+                            .toString(36)
+                            .slice(2),
+
+                    name: file.name,
+
+                    size: file.size,
+
+                    type: file.type,
+
+                    folder: "",
+
+                    timestamp: Date.now()
+
+                });
+
+                addHistory(
+                    file.name +
+                    " added to TidySpace"
+                );
+
+            });
+
+
+            saveData();
+
+            renderFiles();
+
+            updateCounts();
+
+            showToast(
+                selectedFiles.length +
+                " file" +
+                (selectedFiles.length === 1 ? "" : "s") +
+                " added"
+            );
+
+            event.target.value = "";
+
+        });
+
+
+    /* ============================================================
+       DELETE FILE
+       ============================================================ */
+
+    function deleteFile(id) {
+
+        const file =
+            files.find(
+                item => item.id === id
+            );
+
+        if (!file) return;
+
+        files =
+            files.filter(
+                item => item.id !== id
+            );
+
+        addHistory(
+            file.name +
+            " deleted"
+        );
+
+        saveData();
+
+        renderFiles();
+
+        updateCounts();
+
+        showToast("File deleted");
+    }
+
+
+    /* ============================================================
+       SEARCH
+       ============================================================ */
+
+    document
+        .getElementById("searchInput")
+        .addEventListener("input", () => {
+
+            if (currentView !== "activity") {
+                renderFiles();
+            }
+
+        });
+
+
+    /* ============================================================
+       KEYBOARD SHORTCUT
+       ============================================================ */
+
+    document.addEventListener("keydown", event => {
+
+        if (
+            (event.metaKey || event.ctrlKey)
+            &&
+            event.key.toLowerCase() === "k"
+        ) {
+
+            event.preventDefault();
+
+            document
+                .getElementById("searchInput")
+                .focus();
+
+        }
+
+        if (event.key === "Escape") {
+            closeModal();
+        }
+
+    });
+
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+
+    document
+        .querySelectorAll(".nav-button")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+                    changeView(
+                        button.dataset.view
+                    );
+                }
+            );
+
+        });
+
+
+    /* ============================================================
+       BROWSE ALL
+       ============================================================ */
+
+    document
+        .getElementById("browseButton")
+        .addEventListener("click", () => {
+
+            changeView("files");
+
+        });
+
+
+    document
+        .getElementById("viewFoldersButton")
+        .addEventListener("click", () => {
+
+            openFoldersModal();
+
+        });
+
+
+    /* ============================================================
+       MODAL
+       ============================================================ */
+
+    const modal =
+        document.getElementById(
+            "modalOverlay"
+        );
+
+    function openModal(title, content) {
+
+        document.getElementById(
+            "modalTitle"
+        ).textContent = title;
+
+        document.getElementById(
+            "modalContent"
+        ).innerHTML = content;
+
+        modal.classList.add("show");
+    }
+
+
+    function closeModal() {
+
+        modal.classList.remove("show");
+    }
+
+
+    document
+        .getElementById("closeModal")
+        .addEventListener(
+            "click",
+            closeModal
+        );
+
+
+    modal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target === modal
+            ) {
+                closeModal();
+            }
+
+        }
+    );
+
+
+    /* ============================================================
+       FOLDERS
+       ============================================================ */
+
+    function openFoldersModal() {
+
+        const folders = [
+            "School",
+            "School / Math",
+            "School / Science",
+            "School / English",
+            "School / Italian",
+            "Personal Work",
+            "Projects",
+            "Home"
+        ];
+
+
+        openModal(
+            "Choose a folder",
+            `
+
+                <p style="
+                    color:#7d8799;
+                    margin-bottom:15px;
+                ">
+                    Select a folder for an unorganized file.
+                </p>
+
+                ${
+                    files.length === 0
+
+                    ? `
+                        <div class="empty-state"
+                             style="padding:30px 0;">
+                            <h3>No files to organize</h3>
+                        </div>
+                    `
+
+                    : files
+                        .filter(file => !file.folder)
+                        .map(file => `
+
+                            <div style="
+                                margin-bottom:20px;
+                                padding-bottom:18px;
+                                border-bottom:1px solid #edf0f5;
+                            ">
+
+                                <strong>
+                                    ${escapeHTML(file.name)}
+                                </strong>
+
+                                ${
+                                    folders.map(folder => `
+
+                                        <button
+                                            class="folder-option"
+                                            onclick="assignFolder(
+                                                '${file.id}',
+                                                '${folder}'
+                                            )"
+                                        >
+                                            ▱ ${folder}
+                                        </button>
+
+                                    `).join("")
+                                }
+
+                            </div>
+
+                        `).join("")
+                }
+
+            `
+        );
+    }
+
+
+    function assignFolder(id, folder) {
+
+        const file =
+            files.find(
+                item => item.id === id
+            );
+
+        if (!file) return;
+
+        file.folder = folder;
+
+        addHistory(
+            file.name +
+            " organized into " +
+            folder
+        );
+
+        saveData();
+
+        closeModal();
+
+        renderFiles();
+
+        updateCounts();
+
+        showToast(
+            file.name +
+            " organized"
+        );
+    }
+
+
+    /* ============================================================
+       NOTIFICATIONS
+       ============================================================ */
+
+    document
+        .getElementById("notificationButton")
+        .addEventListener(
+            "click",
+            () => {
+
+                openModal(
+                    "Notifications",
+                    `
+
+                        <div class="empty-state"
+                             style="padding:45px 15px;">
+
+                            <div class="empty-icon">
+                                ♧
+                            </div>
+
+                            <h3>
+                                No new notifications
+                            </h3>
+
+                            <p>
+                                TidySpace will show important
+                                updates here.
+                            </p>
+
+                        </div>
+
+                    `
+                );
+
+                document
+                    .getElementById(
+                        "notificationDot"
+                    )
+                    .style.display = "none";
+
+            }
+        );
+
+
+    /* ============================================================
+       HELP
+       ============================================================ */
+
+    document
+        .getElementById("helpButton")
+        .addEventListener(
+            "click",
+            () => {
+
+                openModal(
+                    "How TidySpace works",
+                    `
+
+                        <div style="
+                            line-height:1.7;
+                            color:#667185;
+                        ">
+
+                            <p>
+                                <strong>1. Add files</strong><br>
+                                Click "Add a file" and choose
+                                files from your computer.
+                            </p>
+
+                            <br>
+
+                            <p>
+                                <strong>2. Organize</strong><br>
+                                Files without folders appear
+                                under "Needs organizing".
+                            </p>
+
+                            <br>
+
+                            <p>
+                                <strong>3. Search</strong><br>
+                                Use the search bar to quickly
+                                find files.
+                            </p>
+
+                            <br>
+
+                            <p>
+                                <strong>4. Activity</strong><br>
+                                TidySpace records important
+                                actions in your history.
+                            </p>
+
+                        </div>
+
+                    `
+                );
+
+            }
+        );
+
+
+    /* ============================================================
+       HISTORY SEE ALL
+       ============================================================ */
+
+    document
+        .getElementById("historyButton")
+        .addEventListener(
+            "click",
+            () => {
+
+                changeView("activity");
+
+            }
+        );
+
+
+    /* ============================================================
+       INITIALIZE
+       ============================================================ */
+
+    function initialize() {
+
+        renderFiles();
+
+        renderHistory();
+
+        updateCounts();
+
+    }
+
+    initialize();
+
+</script>
+
+</body>
+</html>
